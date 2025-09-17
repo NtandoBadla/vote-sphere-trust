@@ -22,6 +22,7 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          glow: "hsl(var(--primary-glow))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -47,6 +48,12 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        vote: {
+          pending: "hsl(var(--vote-pending))",
+          success: "hsl(var(--vote-success))",
+          verified: "hsl(var(--vote-verified))",
+          error: "hsl(var(--vote-error))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -58,10 +65,24 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
       },
+      backgroundImage: {
+        "gradient-hero": "var(--gradient-hero)",
+        "gradient-card": "var(--gradient-card)",
+        "gradient-secure": "var(--gradient-secure)",
+      },
+      boxShadow: {
+        "card": "var(--shadow-card)",
+        "voting": "var(--shadow-voting)",
+        "secure": "var(--shadow-secure)",
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      transitionTimingFunction: {
+        "smooth": "var(--transition-smooth)",
+        "secure": "var(--transition-secure)",
       },
       keyframes: {
         "accordion-down": {
