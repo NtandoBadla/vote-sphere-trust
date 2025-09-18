@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { useToast } from "@/hooks/use-toast";
+import { api } from "@/lib/api";
 
 const Ballot = () => {
   const { electionId } = useParams();
@@ -25,42 +26,52 @@ const Ballot = () => {
   const { toast } = useToast();
   const [selectedCandidate, setSelectedCandidate] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [election, setElection] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Mock election data - would come from API
-  const election = {
-    id: electionId,
-    title: "City Council Election 2024",
-    description: "Choose your local representatives for the next term. Each candidate will serve a 4-year term starting January 2025.",
-    endDate: "December 15, 2024 at 11:59 PM",
-    timeLeft: "4 days, 12 hours",
-    district: "District 7",
-    candidates: [
-      {
-        id: "candidate-1",
-        name: "Sarah Chen",
-        party: "Progressive Alliance",
-        experience: "Former School Board Member, 8 years",
-        platform: "Focus on education funding, sustainable development, and community health programs.",
-        image: "/api/placeholder/80/80"
-      },
-      {
-        id: "candidate-2", 
-        name: "Marcus Rodriguez",
-        party: "Civic Unity Party",
-        experience: "Small Business Owner, Community Activist",
-        platform: "Economic development, infrastructure improvement, and transparent governance.",
-        image: "/api/placeholder/80/80"
-      },
-      {
-        id: "candidate-3",
-        name: "Emily Thompson",
-        party: "Independent",
-        experience: "City Engineer, 12 years municipal service",
-        platform: "Evidence-based policy, environmental protection, and fiscal responsibility.",
-        image: "/api/placeholder/80/80"
+  useEffect(() => {
+    const fetchElection = async () => {
+      try {
+        const electionData = await api.getElection(electionId!);
+        setElection(electionData);
+      } catch (error) {
+        console.error('Failed to fetch election:', error);
+        toast({
+          title: "Error loading election",
+          description: "Could not load election data.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
       }
-    ]
-  };
+    };
+
+    if (electionId) {
+      fetchElection();
+    }
+  }, [electionId, toast]);
+
+  if (loading) {
+    return (
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <p>Loading election...</p>
+        </div>
+      </>
+    );
+  }
+
+  if (!election) {
+    return (
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <p>Election not found</p>
+        </div>
+      </>
+    );
+  }
 
   const handleSubmit = async () => {
     if (!selectedCandidate) {
@@ -74,21 +85,42 @@ const Ballot = () => {
 
     setIsSubmitting(true);
     
-    // Simulate vote submission
-    setTimeout(() => {
+    try {
+      // Check if user already voted
+      const voteStatus = await api.getVoteStatus(electionId!);
+      if (voteStatus.hasVoted) {
+        toast({
+          title: "Already voted",
+          description: "You have already cast your vote for this election.",
+          variant: "destructive"
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      await api.castVote(electionId!, selectedCandidate);
+      
       toast({
         title: "Vote submitted successfully!",
-        description: "Your vote has been recorded and verified. You will receive a confirmation shortly.",
+        description: "Your vote has been recorded and verified.",
       });
       
       navigate("/confirmation", { 
         state: { 
           election: election.title,
-          candidate: election.candidates.find(c => c.id === selectedCandidate)?.name,
+          candidate: election.candidates.find(c => c.id == selectedCandidate)?.name,
           timestamp: new Date().toISOString()
         }
       });
-    }, 2000);
+    } catch (error) {
+      toast({
+        title: "Vote submission failed",
+        description: error.message || "There was an error submitting your vote. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

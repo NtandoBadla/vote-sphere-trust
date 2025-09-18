@@ -16,7 +16,11 @@ import {
   Key
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
+import { BackendStatus } from "@/components/BackendStatus";
+import { SupabaseStatus } from "@/components/SupabaseStatus";
 import { useToast } from "@/hooks/use-toast";
+import { api } from "@/lib/api";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -26,19 +30,28 @@ const Login = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate authentication
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await api.login(credentials.email, credentials.password);
       toast({
         title: "Login successful!",
         description: "Welcome back to VoteSphere. Redirecting to your dashboard...",
       });
-    }, 1500);
+      navigate('/vote');
+    } catch (error) {
+      toast({
+        title: "Login failed",
+        description: error instanceof Error ? error.message : "Invalid credentials",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleBiometricLogin = () => {
@@ -69,6 +82,10 @@ const Login = () => {
             <p className="text-muted-foreground">
               Access your VoteSphere account with military-grade encryption
             </p>
+            <div className="mt-4 flex gap-2">
+              <BackendStatus />
+              <SupabaseStatus />
+            </div>
           </div>
 
           <Card className="shadow-voting">
@@ -81,15 +98,43 @@ const Login = () => {
                 <Button 
                   variant="outline" 
                   className="w-full" 
-                  onClick={() => handleOAuthLogin("Google")}
+                  onClick={() => {
+                    // Mock Gmail login
+                    const mockGmailUser = {
+                      id: 2,
+                      email: "user@gmail.com",
+                      first_name: "Gmail",
+                      last_name: "User",
+                      id_number: "8501010001087",
+                      is_admin: false
+                    };
+                    localStorage.setItem('user', JSON.stringify(mockGmailUser));
+                    localStorage.setItem('token', btoa(JSON.stringify({ id: mockGmailUser.id, email: mockGmailUser.email })));
+                    toast({ title: "Gmail Login Successful", description: "Welcome back!" });
+                    navigate('/vote');
+                  }}
                 >
                   <Mail className="h-4 w-4 mr-2" />
-                  Continue with Google
+                  Continue with Gmail
                 </Button>
                 <Button 
                   variant="outline" 
                   className="w-full"
-                  onClick={() => handleOAuthLogin("Government ID")}
+                  onClick={() => {
+                    // Mock digital government ID login
+                    const mockGovUser = {
+                      id: 1,
+                      email: "citizen@gov.za",
+                      first_name: "Digital",
+                      last_name: "Citizen",
+                      id_number: "9001010001088",
+                      is_admin: false
+                    };
+                    localStorage.setItem('user', JSON.stringify(mockGovUser));
+                    localStorage.setItem('token', btoa(JSON.stringify({ id: mockGovUser.id, email: mockGovUser.email })));
+                    toast({ title: "Digital ID Login Successful", description: "Welcome, verified citizen!" });
+                    navigate('/vote');
+                  }}
                 >
                   <Key className="h-4 w-4 mr-2" />
                   Digital Government ID

@@ -7,7 +7,11 @@ import Home from "./pages/Home";
 import VotingDashboard from "./pages/VotingDashboard";
 import Ballot from "./pages/Ballot";
 import Login from "./pages/Login";
+import { Register } from "./pages/Register";
+import { RegistrationSuccess } from "./pages/RegistrationSuccess";
 import VoteConfirmation from "./pages/VoteConfirmation";
+import Audit from "./pages/Audit";
+import Results from "./pages/Results";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,10 +27,11 @@ const App = () => (
           <Route path="/vote" element={<VotingDashboard />} />
           <Route path="/ballot/:electionId" element={<Ballot />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/registration-success" element={<RegistrationSuccess />} />
           <Route path="/confirmation" element={<VoteConfirmation />} />
-          <Route path="/results" element={<VotingDashboard />} />
-          <Route path="/audit" element={<VotingDashboard />} />
+          <Route path="/results" element={<Results />} />
+          <Route path="/audit" element={<Audit />} />
           <Route path="/admin" element={<VotingDashboard />} />
           <Route path="/demo" element={<VotingDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

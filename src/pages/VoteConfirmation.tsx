@@ -30,20 +30,46 @@ const VoteConfirmation = () => {
   };
 
   const downloadReceipt = () => {
-    // In a real app, this would generate and download a PDF receipt
-    const receiptData = {
-      election,
-      candidate,
-      ...verificationData
-    };
+    const receiptContent = `
+VOTE RECEIPT
+============
+
+Election: ${election || "City Council Election 2024"}
+Candidate Selected: ${candidate || "Sarah Chen"}
+Vote Cast Time: ${new Date(verificationData.timestamp).toLocaleString()}
+Status: Verified & Recorded
+
+VERIFICATION DETAILS
+===================
+Vote ID: ${verificationData.voteId}
+Confirmation Number: ${verificationData.confirmationNumber}
+Blockchain Hash: ${verificationData.blockHash}
+Transaction ID: ${verificationData.transactionId}
+
+SECURITY INFORMATION
+===================
+✓ Your vote is encrypted and anonymous
+✓ Recorded on immutable blockchain ledger
+✓ Independently verifiable
+✓ Protected by end-to-end encryption
+
+Verification URL: ${verificationData.verificationUrl}
+
+Thank you for participating in the democratic process!
+
+Generated: ${new Date().toLocaleString()}
+VoteSphere Trust - Secure Digital Voting Platform
+    `;
     
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(receiptData, null, 2));
+    const blob = new Blob([receiptContent], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
     const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", `vote-receipt-${verificationData.voteId}.json`);
+    downloadAnchorNode.setAttribute("href", url);
+    downloadAnchorNode.setAttribute("download", `vote-receipt-${verificationData.voteId}.txt`);
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
+    window.URL.revokeObjectURL(url);
   };
 
   return (

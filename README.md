@@ -1,18 +1,4 @@
-# Welcome to your Lovable project
 
-## Project info
-
-**URL**: https://lovable.dev/projects/8186d27b-4bc6-4eb6-ae8f-2ce188a90e3a
-
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/8186d27b-4bc6-4eb6-ae8f-2ce188a90e3a) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
 
 **Use your preferred IDE**
 
@@ -30,7 +16,7 @@ git clone <YOUR_GIT_URL>
 cd <YOUR_PROJECT_NAME>
 
 # Step 3: Install the necessary dependencies.
-npm i
+npm install
 
 # Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
@@ -52,22 +38,35 @@ npm run dev
 
 ## What technologies are used for this project?
 
-This project is built with:
-
+### Frontend
 - Vite
 - TypeScript
 - React
 - shadcn-ui
 - Tailwind CSS
+- React Query
+- React Router
 
-## How can I deploy this project?
+### Backend
+- PHP
+- Supabase (PostgreSQL)
+- Session-based authentication
 
-Simply open [Lovable](https://lovable.dev/projects/8186d27b-4bc6-4eb6-ae8f-2ce188a90e3a) and click on Share -> Publish.
+## Supabase Setup
 
-## Can I connect a custom domain to my Lovable project?
+1. **Create Supabase project** at https://supabase.com
+2. **Run SQL**: Copy and run `php-backend/database.sql` in Supabase SQL Editor
+3. **Get credentials**: Project Settings > Database
+4. **Create .env**: Copy `php-backend/.env.example` to `.env` and add your credentials
+5. **Install XAMPP** and start Apache
+6. **Access via browser**: `http://localhost/vote-sphere-trust`
 
-Yes, you can!
+### Default Login Credentials
+- **Admin**: admin@votesphere.com / admin123
+- **User**: user@example.com / user123
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Development
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+The application uses PHP with Supabase PostgreSQL database. Database connection is configured in `php-backend/supabase-config.php`.
+
+

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,40 +14,45 @@ import {
   BarChart3
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
+import { api } from "@/lib/api";
+import { CreateElectionForm } from "@/components/CreateElectionForm";
+import { AddCandidateForm } from "@/components/AddCandidateForm";
+import { useToast } from "@/hooks/use-toast";
 
 const VotingDashboard = () => {
-  const activeElections = [
-    {
-      id: 1,
-      title: "City Council Election 2024",
-      description: "Choose your local representatives for the next term.",
-      endDate: "Dec 15, 2024",
-      timeLeft: "5 days",
-      participants: 12483,
-      status: "active",
-      priority: "high"
-    },
-    {
-      id: 2,
-      title: "Budget Proposal Vote",
-      description: "Approve the fiscal year 2025 municipal budget allocation.",
-      endDate: "Dec 10, 2024",
-      timeLeft: "12 hours",
-      participants: 8721,
-      status: "urgent",
-      priority: "high"
-    },
-    {
-      id: 3,
-      title: "Library Expansion Initiative",
-      description: "Support the construction of two new public library branches.",
-      endDate: "Dec 20, 2024",
-      timeLeft: "10 days",
-      participants: 5247,
-      status: "active",
-      priority: "medium"
+  const navigate = useNavigate();
+  const currentUser = api.getCurrentUser();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (!currentUser) {
+      navigate('/login');
     }
-  ];
+  }, [currentUser, navigate]);
+
+  if (!currentUser) {
+    return null;
+  }
+
+  const [activeElections, setActiveElections] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchElections = async () => {
+      try {
+        const elections = await api.getElections();
+        setActiveElections(elections);
+      } catch (error) {
+        console.error('Failed to fetch elections:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (currentUser) {
+      fetchElections();
+    }
+  }, [currentUser]);
 
   const completedElections = [
     {
@@ -116,7 +121,7 @@ const VotingDashboard = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Active Elections</p>
-                    <p className="text-3xl font-bold text-foreground">{activeElections.length}</p>
+                    <p className="text-3xl font-bold text-foreground">{loading ? '...' : activeElections.length}</p>
                   </div>
                   <Vote className="h-8 w-8 text-primary" />
                 </div>
@@ -160,6 +165,40 @@ const VotingDashboard = () => {
             </Card>
           </div>
 
+          {/* Admin Forms */}
+          {currentUser?.is_admin && (
+            <div className="mb-8 grid md:grid-cols-2 gap-6">
+              <CreateElectionForm onElectionCreated={() => {
+                // Refresh elections list
+                const fetchElections = async () => {
+                  try {
+                    const elections = await api.getElections();
+                    setActiveElections(elections);
+                  } catch (error) {
+                    console.error('Failed to fetch elections:', error);
+                  }
+                };
+                fetchElections();
+              }} />
+              
+              <AddCandidateForm 
+                elections={activeElections}
+                onCandidateAdded={() => {
+                  // Refresh elections list to show updated candidates
+                  const fetchElections = async () => {
+                    try {
+                      const elections = await api.getElections();
+                      setActiveElections(elections);
+                    } catch (error) {
+                      console.error('Failed to fetch elections:', error);
+                    }
+                  };
+                  fetchElections();
+                }}
+              />
+            </div>
+          )}
+
           {/* Active Elections */}
           <div className="mb-12">
             <div className="flex items-center justify-between mb-6">
@@ -171,59 +210,57 @@ const VotingDashboard = () => {
             </div>
 
             <div className="grid gap-6">
-              {activeElections.map((election) => (
-                <Card 
-                  key={election.id} 
-                  className="shadow-card hover:shadow-voting transition-all duration-300 border-l-4 border-l-primary"
-                >
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <CardTitle className="text-xl">{election.title}</CardTitle>
-                          <Badge variant={getStatusColor(election.status) as any}>
-                            <div className="flex items-center gap-1">
-                              {getStatusIcon(election.status)}
-                              {election.status === "urgent" ? "Urgent" : "Active"}
-                            </div>
-                          </Badge>
-                        </div>
-                        <p className="text-muted-foreground">{election.description}</p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                      <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          <span>{election.timeLeft} remaining</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Users className="h-4 w-4" />
-                          <span>{election.participants.toLocaleString()} participants</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          <span>Ends {election.endDate}</span>
+              {loading ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Loading elections...</p>
+                </div>
+              ) : activeElections.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No active elections available</p>
+                </div>
+              ) : (
+                activeElections.map((election) => (
+                  <Card 
+                    key={election.id} 
+                    className="shadow-card hover:shadow-voting transition-all duration-300 border-l-4 border-l-primary"
+                  >
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <CardTitle className="text-xl">{election.title}</CardTitle>
+                            <Badge variant="secondary">
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-4 w-4" />
+                                Active
+                              </div>
+                            </Badge>
+                          </div>
+                          <p className="text-muted-foreground">{election.description}</p>
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
-                          <BarChart3 className="h-4 w-4 mr-2" />
-                          Preview
-                        </Button>
-                        <Button 
-                          asChild 
-                          className="bg-gradient-hero shadow-voting hover:shadow-secure transition-all"
-                        >
-                          <Link to={`/ballot/${election.id}`}>Cast Vote</Link>
-                        </Button>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-4 w-4" />
+                            <span>Ends {new Date(election.end_date).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            asChild 
+                            className="bg-gradient-hero shadow-voting hover:shadow-secure transition-all"
+                          >
+                            <Link to={`/ballot/${election.id}`}>Cast Vote</Link>
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </div>
 

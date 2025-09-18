@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Supabase Connection</title>
+</head>
+<body>
+    <h1>Supabase Connection Test</h1>
+    <button onclick="testConnection()">Test Connection</button>
+    <button onclick="testUsers()">Test Users</button>
+    <button onclick="testAdminUser()">Test Admin User</button>
+    <div id="result"></div>
+
+    <script>
+        const SUPABASE_URL = 'https://hjgeulcorrbctynswzqi.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhqZ2V1bGNvcnJiY3R5bnN3enFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgxMzY0MjksImV4cCI6MjA3MzcxMjQyOX0.5h6eXXO3RzE_VzayAQq4esEFDfxjCjUF0ur2WFrAg8g';
+
+        async function testConnection() {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+                document.getElementById('result').innerHTML = `<p>Connection: ${response.ok ? 'SUCCESS' : 'FAILED'}</p>`;
+            } catch (error) {
+                document.getElementById('result').innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testUsers() {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/users?select=*`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const users = await response.json();
+                    document.getElementById('result').innerHTML = `<pre>${JSON.stringify(users, null, 2)}</pre>`;
+                } else {
+                    const error = await response.text();
+                    document.getElementById('result').innerHTML = `<p>Error: ${error}</p>`;
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testAdminUser() {
+            try {
+                const email = 'admin@votesphere.com';
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=*`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const users = await response.json();
+                    document.getElementById('result').innerHTML = `<h3>Admin User Query:</h3><pre>${JSON.stringify(users, null, 2)}</pre>`;
+                } else {
+                    const error = await response.text();
+                    document.getElementById('result').innerHTML = `<p>Error: ${error}</p>`;
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
