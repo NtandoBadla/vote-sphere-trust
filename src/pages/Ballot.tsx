@@ -28,8 +28,24 @@ const Ballot = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [election, setElection] = useState(null);
   const [loading, setLoading] = useState(true);
+  const currentUser = api.getCurrentUser();
 
   useEffect(() => {
+    if (!currentUser) {
+      navigate('/login');
+      return;
+    }
+
+    if (currentUser.is_admin) {
+      toast({
+        title: "Access Denied",
+        description: "Administrators cannot cast votes.",
+        variant: "destructive"
+      });
+      navigate('/vote');
+      return;
+    }
+
     const fetchElection = async () => {
       try {
         const electionData = await api.getElection(electionId!);
@@ -49,7 +65,7 @@ const Ballot = () => {
     if (electionId) {
       fetchElection();
     }
-  }, [electionId, toast]);
+  }, [electionId, toast, currentUser, navigate]);
 
   if (loading) {
     return (

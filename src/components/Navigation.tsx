@@ -16,7 +16,7 @@ const Navigation = () => {
   };
 
   const navigation = [
-    { name: "Home", href: "/" },
+    { name: "Home", href: currentUser ? "/vote" : "/" },
     { name: "Vote", href: "/vote" },
     { name: "Results", href: "/results" },
     { name: "Audit", href: "/audit" },
@@ -29,7 +29,7 @@ const Navigation = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-2">
+            <Link to={currentUser ? "/vote" : "/"} className="flex items-center space-x-2">
               <div className="p-2 bg-gradient-hero rounded-lg shadow-voting">
                 <Vote className="h-6 w-6 text-primary-foreground" />
               </div>

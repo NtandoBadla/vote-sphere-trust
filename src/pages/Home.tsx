@@ -48,12 +48,12 @@ const Home = () => {
     }
   ];
 
-  const stats = [
+ {/* const stats = [
     { icon: Users, label: "Registered Voters", value: "2.4M+" },
     { icon: Vote, label: "Elections Conducted", value: "15,847" },
     { icon: Shield, label: "Security Incidents", value: "0" },
     { icon: Award, label: "Uptime", value: "99.99%" }
-  ];
+  ];*/}
 
   return (
     <>
@@ -97,7 +97,7 @@ const Home = () => {
           </div>
         </section>
 
-        {/* Stats Section */}
+        {/* Stats Section 
         <section className="py-16 bg-muted/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -110,7 +110,7 @@ const Home = () => {
               ))}
             </div>
           </div>
-        </section>
+        </section>*/}
 
         {/* Features Section */}
         <section className="py-24">
@@ -143,7 +143,7 @@ const Home = () => {
           </div>
         </section>
 
-        {/* Active Elections Preview */}
+        {/* Active Elections Preview 
         <section className="py-24 bg-muted/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
@@ -238,7 +238,7 @@ const Home = () => {
               </Button>
             </div>
           </div>
-        </section>
+        </section>*/}
 
         {/* CTA Section */}
         <section className="py-24 bg-gradient-hero">

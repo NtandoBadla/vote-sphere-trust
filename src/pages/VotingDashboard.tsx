@@ -140,17 +140,19 @@ const VotingDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="shadow-card">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Votes Cast</p>
-                    <p className="text-3xl font-bold text-vote-success">12</p>
+            {currentUser?.is_admin && (
+              <Card className="shadow-card">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Votes Cast</p>
+                      <p className="text-3xl font-bold text-vote-success">12</p>
+                    </div>
+                    <CheckCircle className="h-8 w-8 text-vote-success" />
                   </div>
-                  <CheckCircle className="h-8 w-8 text-vote-success" />
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
 
             <Card className="shadow-card">
               <CardContent className="p-6">
@@ -249,12 +251,21 @@ const VotingDashboard = () => {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <Button 
-                            asChild 
-                            className="bg-gradient-hero shadow-voting hover:shadow-secure transition-all"
-                          >
-                            <Link to={`/ballot/${election.id}`}>Cast Vote</Link>
-                          </Button>
+                          {!currentUser?.is_admin ? (
+                            <Button 
+                              asChild 
+                              className="bg-gradient-hero shadow-voting hover:shadow-secure transition-all"
+                            >
+                              <Link to={`/ballot/${election.id}`}>Cast Vote</Link>
+                            </Button>
+                          ) : (
+                            <Button 
+                              disabled
+                              className="bg-muted text-muted-foreground cursor-not-allowed"
+                            >
+                              Admin Cannot Vote
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </CardContent>
@@ -288,7 +299,9 @@ const VotingDashboard = () => {
                         <p className="text-sm text-muted-foreground mb-2">{election.description}</p>
                         <div className="flex items-center gap-4 text-xs text-muted-foreground">
                           <span>Completed {election.completedDate}</span>
-                          <span>{election.participants.toLocaleString()} total votes</span>
+                          {currentUser?.is_admin && (
+                            <span>{election.participants.toLocaleString()} total votes</span>
+                          )}
                         </div>
                       </div>
                       <Button variant="outline" size="sm" asChild>
