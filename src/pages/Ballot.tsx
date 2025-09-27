@@ -89,11 +89,45 @@ const Ballot = () => {
     );
   }
 
+  // Check if election has expired
+  const isExpired = new Date() > new Date(election.end_date);
+  
+  if (isExpired) {
+    return (
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <Card className="max-w-md">
+            <CardContent className="p-8 text-center">
+              <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h2 className="text-xl font-semibold mb-2">Election Closed</h2>
+              <p className="text-muted-foreground mb-4">
+                This election ended on {new Date(election.end_date).toLocaleDateString()}. 
+                Voting is no longer allowed.
+              </p>
+              <Button onClick={() => navigate('/vote')}>View Other Elections</Button>
+            </CardContent>
+          </Card>
+        </div>
+      </>
+    );
+  }
+
   const handleSubmit = async () => {
     if (!selectedCandidate) {
       toast({
         title: "Please select a candidate",
         description: "You must choose a candidate before submitting your vote.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check if election has expired
+    if (new Date() > new Date(election.end_date)) {
+      toast({
+        title: "Election Closed",
+        description: "This election has ended and voting is no longer allowed.",
         variant: "destructive"
       });
       return;

@@ -100,8 +100,19 @@ class ApiClient {
   }
 
   // Election endpoints
+  async deleteExpiredElections() {
+    const now = new Date().toISOString();
+    await this.request(`/elections?end_date=lt.${now}`, {
+      method: 'DELETE'
+    });
+  }
+
   async getElections() {
-    return await this.request(`/elections?select=*&order=start_date.asc`);
+    // Delete expired elections first
+    await this.deleteExpiredElections();
+    
+    const elections = await this.request(`/elections?select=*&order=start_date.asc`);
+    return elections;
   }
 
   async createElection(electionData: { title: string; description: string; startDate: string; endDate: string }) {
@@ -141,10 +152,29 @@ class ApiClient {
     const votes = await this.request(`/votes?election_id=eq.${electionId}&select=candidate_id`);
     const candidates = await this.request(`/candidates?election_id=eq.${electionId}&select=id,name`);
     
-    const voteCounts = candidates.map(candidate => ({
-      ...candidate,
-      voteCount: votes.filter(vote => vote.candidate_id === candidate.id).length
-    }));
+    console.log('=== VOTE COUNT DEBUG ===');
+    console.log('Election ID:', electionId);
+    console.log('Total votes in DB:', votes.length);
+    console.log('Votes data:', votes);
+    console.log('Candidates data:', candidates);
+    
+    const voteCounts = candidates.map(candidate => {
+      const matchingVotes = votes.filter(vote => {
+        const match = String(vote.candidate_id) === String(candidate.id);
+        console.log(`Vote ${vote.candidate_id} matches candidate ${candidate.id}:`, match);
+        return match;
+      });
+      
+      console.log(`Candidate ${candidate.name} (ID: ${candidate.id}): ${matchingVotes.length} votes`);
+      
+      return {
+        ...candidate,
+        voteCount: matchingVotes.length
+      };
+    });
+    
+    console.log('Final results:', voteCounts);
+    console.log('=== END DEBUG ===');
     
     return {
       totalVotes: votes.length,
@@ -179,6 +209,14 @@ class ApiClient {
   async castVote(electionId: string, candidateId: string) {
     const user = this.getCurrentUser();
     if (!user) throw new Error('Not authenticated');
+    
+    // Check if election is still active
+    const election = await this.request(`/elections?id=eq.${electionId}&select=end_date`);
+    if (election.length === 0) throw new Error('Election not found');
+    
+    if (new Date() > new Date(election[0].end_date)) {
+      throw new Error('Election has ended. Voting is no longer allowed.');
+    }
     
     console.log('Casting vote:', { user_id: user.id, election_id: parseInt(electionId), candidate_id: parseInt(candidateId) });
     

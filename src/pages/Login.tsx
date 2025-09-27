@@ -125,8 +125,8 @@ const Login = () => {
                     const mockGovUser = {
                       id: 1,
                       email: "citizen@gov.za",
-                      first_name: "Digital",
-                      last_name: "Citizen",
+                      first_name: "Ntando",
+                      last_name: "Badla",
                       id_number: "9001010001088",
                       is_admin: false
                     };

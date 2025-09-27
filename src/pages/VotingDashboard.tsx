@@ -51,6 +51,10 @@ const VotingDashboard = () => {
 
     if (currentUser) {
       fetchElections();
+      
+      // Refresh elections every 30 seconds to check for expired elections
+      const interval = setInterval(fetchElections, 30000);
+      return () => clearInterval(interval);
     }
   }, [currentUser]);
 
@@ -115,7 +119,7 @@ const VotingDashboard = () => {
           </div>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <Card className="shadow-card">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -128,17 +132,7 @@ const VotingDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="shadow-card">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Pending Votes</p>
-                    <p className="text-3xl font-bold text-vote-error">2</p>
-                  </div>
-                  <AlertCircle className="h-8 w-8 text-vote-error" />
-                </div>
-              </CardContent>
-            </Card>
+
 
             {currentUser?.is_admin && (
               <Card className="shadow-card">
@@ -276,7 +270,7 @@ const VotingDashboard = () => {
           </div>
 
           {/* Completed Elections */}
-          <div>
+          {/* <div>
             <h2 className="text-2xl font-bold text-foreground mb-6">Recent Results</h2>
             <div className="grid gap-4">
               {completedElections.map((election) => (
@@ -312,7 +306,7 @@ const VotingDashboard = () => {
                 </Card>
               ))}
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </>
