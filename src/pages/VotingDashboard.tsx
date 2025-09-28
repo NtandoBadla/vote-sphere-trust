@@ -35,6 +35,7 @@ const VotingDashboard = () => {
   }
 
   const [activeElections, setActiveElections] = useState([]);
+  const [totalVotes, setTotalVotes] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,6 +43,10 @@ const VotingDashboard = () => {
       try {
         const elections = await api.getElections();
         setActiveElections(elections);
+        
+        // Get total vote count
+        const votes = await api.getAllVotes();
+        setTotalVotes(votes.length);
       } catch (error) {
         console.error('Failed to fetch elections:', error);
       } finally {
@@ -140,7 +145,7 @@ const VotingDashboard = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Votes Cast</p>
-                      <p className="text-3xl font-bold text-vote-success">12</p>
+                      <p className="text-3xl font-bold text-vote-success">{totalVotes}</p>
                     </div>
                     <CheckCircle className="h-8 w-8 text-vote-success" />
                   </div>

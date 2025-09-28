@@ -274,17 +274,11 @@ const Ballot = () => {
                               <User className="h-8 w-8 text-muted-foreground" />
                             </div>
                             <div className="flex-1">
-                              <h3 className="text-lg font-semibold text-foreground mb-1">
+                              <h3 className="text-lg font-semibold text-foreground mb-2">
                                 {candidate.name}
                               </h3>
-                              <p className="text-sm text-primary font-medium mb-2">
-                                {candidate.party}
-                              </p>
-                              <p className="text-sm text-muted-foreground mb-2">
-                                {candidate.experience}
-                              </p>
-                              <p className="text-sm text-foreground">
-                                {candidate.platform}
+                              <p className="text-sm text-muted-foreground">
+                                {candidate.description}
                               </p>
                             </div>
                           </div>
