@@ -100,19 +100,11 @@ class ApiClient {
   }
 
   // Election endpoints
-  async deleteExpiredElections() {
-    const now = new Date().toISOString();
-    await this.request(`/elections?end_date=lt.${now}`, {
-      method: 'DELETE'
-    });
-  }
-
   async getElections() {
-    // Delete expired elections first
-    await this.deleteExpiredElections();
-    
     const elections = await this.request(`/elections?select=*&order=start_date.asc`);
-    return elections;
+    // Filter out expired elections (don't delete to preserve data)
+    const now = new Date().toISOString();
+    return elections.filter(election => election.end_date > now);
   }
 
   async createElection(electionData: { title: string; description: string; startDate: string; endDate: string }) {
