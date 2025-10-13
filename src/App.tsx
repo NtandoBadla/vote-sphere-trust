@@ -13,6 +13,7 @@ import VoteConfirmation from "./pages/VoteConfirmation";
 import Audit from "./pages/Audit";
 import Results from "./pages/Results";
 import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/results" element={<Results />} />
           <Route path="/audit" element={<Audit />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/admin" element={<VotingDashboard />} />
           <Route path="/demo" element={<VotingDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

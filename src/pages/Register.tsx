@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { api } from '@/lib/api';
 import { GoogleLogin } from '@/components/GoogleLogin';
+import { sendWelcomeEmail } from '@/lib/emailService';
 
 export const Register = () => {
   const [formData, setFormData] = useState({
@@ -33,8 +34,10 @@ export const Register = () => {
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+    // Strong password validation
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(formData.password)) {
+      setError('Password must be at least 8 characters with uppercase, lowercase, number, and special character');
       setLoading(false);
       return;
     }
@@ -64,9 +67,20 @@ export const Register = () => {
         idNumber: formData.idNumber,
         dateOfBirth: formData.dateOfBirth
       });
+      
+      // Send welcome email
+      console.log('Attempting to send welcome email...');
+      const emailResult = await sendWelcomeEmail(formData.email, formData.firstName, formData.lastName);
+      console.log('Email result:', emailResult);
+      
       navigate('/registration-success');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
+      const errorMessage = err instanceof Error ? err.message : 'Registration failed';
+      if (errorMessage.includes('duplicate') || errorMessage.includes('already exists') || errorMessage.includes('unique')) {
+        setError('This email address is already registered. Please use a different email or try logging in.');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -173,6 +187,9 @@ export const Register = () => {
                 value={formData.password}
                 onChange={handleChange}
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Must be 8+ characters with uppercase, lowercase, number, and special character
+              </p>
             </div>
             
             <div>

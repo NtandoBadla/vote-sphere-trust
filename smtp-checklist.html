@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SMTP Configuration Checklist</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px; }
+        .checklist { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 10px 0; }
+        .step { margin: 15px 0; padding: 10px; border-left: 4px solid #007bff; background: white; }
+        .critical { border-left-color: #dc3545; background: #fff5f5; }
+        .warning { border-left-color: #ffc107; background: #fffbf0; }
+        .success { border-left-color: #28a745; background: #f0fff4; }
+        input[type="checkbox"] { margin-right: 10px; transform: scale(1.2); }
+        .code { background: #f1f1f1; padding: 10px; border-radius: 4px; font-family: monospace; }
+        .highlight { background: yellow; padding: 2px 4px; }
+    </style>
+</head>
+<body>
+    <h1>🔧 SMTP Configuration Checklist</h1>
+    
+    <div class="checklist">
+        <h2>Step 1: Supabase SMTP Settings</h2>
+        
+        <div class="step critical">
+            <h3>🚨 Critical Settings</h3>
+            <label><input type="checkbox"> Go to Supabase Dashboard → Authentication → Settings</label><br>
+            <label><input type="checkbox"> Scroll down to "SMTP Settings"</label><br>
+            <label><input type="checkbox"> <span class="highlight">Toggle "Enable custom SMTP" to ON</span></label><br>
+            <label><input type="checkbox"> Fill in ALL fields below:</label>
+        </div>
+
+        <div class="step">
+            <h3>📧 SMTP Configuration</h3>
+            <div class="code">
+Enable custom SMTP: ✅ <strong>ENABLED</strong>
+SMTP Host: smtp-relay.brevo.com
+SMTP Port: 587
+SMTP Username: ntandobadla1@gmail.com
+SMTP Password: [Your Brevo SMTP Key - NOT your login password]
+Sender Name: VoteSphere
+Sender Email: ntandobadla1@gmail.com
+            </div>
+            <label><input type="checkbox"> All fields filled exactly as above</label><br>
+            <label><input type="checkbox"> SMTP Password is the SMTP KEY (not login password)</label><br>
+            <label><input type="checkbox"> Clicked "Save" button</label>
+        </div>
+    </div>
+
+    <div class="checklist">
+        <h2>Step 2: Brevo Account Verification</h2>
+        
+        <div class="step warning">
+            <h3>⚠️ Brevo Requirements</h3>
+            <label><input type="checkbox"> Login to Brevo → Senders & IP</label><br>
+            <label><input type="checkbox"> ntandobadla1@gmail.com shows "Verified" status</label><br>
+            <label><input type="checkbox"> Generated SMTP key in SMTP & API → SMTP</label><br>
+            <label><input type="checkbox"> Copied the SMTP key (not login password)</label>
+        </div>
+    </div>
+
+    <div class="checklist">
+        <h2>Step 3: Supabase Auth User</h2>
+        
+        <div class="step">
+            <h3>👤 User in Auth System</h3>
+            <label><input type="checkbox"> Go to Supabase → Authentication → Users</label><br>
+            <label><input type="checkbox"> ntandobadla1@gmail.com exists in the list</label><br>
+            <label><input type="checkbox"> If not, run this SQL in SQL Editor:</label>
+            
+            <div class="code">
+INSERT INTO auth.users (
+  instance_id, id, aud, role, email, encrypted_password, 
+  email_confirmed_at, created_at, updated_at
+) VALUES (
+  '00000000-0000-0000-0000-000000000000',
+  gen_random_uuid(), 'authenticated', 'authenticated',
+  'ntandobadla1@gmail.com', 
+  crypt('password123', gen_salt('bf')),
+  now(), now(), now()
+);
+            </div>
+        </div>
+    </div>
+
+    <div class="checklist">
+        <h2>Step 4: Common Issues</h2>
+        
+        <div class="step critical">
+            <h3>🔍 Double-Check These</h3>
+            <label><input type="checkbox"> SMTP is actually ENABLED (toggle is ON)</label><br>
+            <label><input type="checkbox"> Using SMTP KEY not login password</label><br>
+            <label><input type="checkbox"> No extra spaces in any fields</label><br>
+            <label><input type="checkbox"> Sender email matches verified email exactly</label><br>
+            <label><input type="checkbox"> Clicked Save after making changes</label><br>
+            <label><input type="checkbox"> Waited 2-3 minutes after saving</label>
+        </div>
+    </div>
+
+    <div class="checklist">
+        <h2>Step 5: Alternative Test</h2>
+        
+        <div class="step success">
+            <h3>🧪 Try Default SMTP First</h3>
+            <p>If still failing, temporarily test with Supabase default:</p>
+            <label><input type="checkbox"> Disable custom SMTP in Supabase</label><br>
+            <label><input type="checkbox"> Test password reset</label><br>
+            <label><input type="checkbox"> Check spam folder (Supabase emails go to spam)</label><br>
+            <label><input type="checkbox"> If this works, re-enable custom SMTP</label>
+        </div>
+    </div>
+
+    <div class="step critical">
+        <h2>🚨 If Still Failing</h2>
+        <p>The issue is likely:</p>
+        <ol>
+            <li><strong>SMTP not actually enabled</strong> - Check the toggle is ON</li>
+            <li><strong>Wrong SMTP key</strong> - Regenerate in Brevo</li>
+            <li><strong>Email not verified</strong> - Check Brevo senders list</li>
+            <li><strong>Supabase cache</strong> - Wait 5 minutes after changes</li>
+        </ol>
+    </div>
+</body>
+</html>

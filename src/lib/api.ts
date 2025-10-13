@@ -68,6 +68,18 @@ class ApiClient {
   }
 
   async register(userData: { email: string; password: string; firstName: string; lastName: string; idNumber: string; dateOfBirth: string }) {
+    // Check if email already exists
+    try {
+      const existingUsers = await this.request(`/users?email=eq.${encodeURIComponent(userData.email)}&select=email`);
+      if (existingUsers && existingUsers.length > 0) {
+        throw new Error('This email address is already registered. Please use a different email or try logging in.');
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('already registered')) {
+        throw error;
+      }
+    }
+
     const response = await this.request('/users', {
       method: 'POST',
       body: JSON.stringify({
@@ -179,21 +191,26 @@ class ApiClient {
   }
 
   async resetPassword(email: string) {
-    // Check if user exists in our custom users table
-    const response = await this.request(`/users?email=eq.${encodeURIComponent(email)}&select=email`);    
-    if (response.length === 0) {
-      throw new Error('Email not found');
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    
+    if (error) {
+      throw new Error(error.message);
     }
     
-    console.log('⚠️  EMAIL NOT CONFIGURED');
-    console.log('To send actual emails, you need to:');
-    console.log('1. Go to Supabase Dashboard → Authentication → Settings');
-    console.log('2. Configure SMTP settings with your email provider');
-    console.log('3. Enable "Enable email confirmations"');
-    console.log('4. Set up email templates');
-    console.log(`📧 Would send password reset email to: ${email}`);
+    return { success: true };
+  }
+
+  async updatePassword(newPassword: string) {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
     
-    // For now, just simulate success
+    if (error) {
+      throw new Error(error.message);
+    }
+    
     return { success: true };
   }
 

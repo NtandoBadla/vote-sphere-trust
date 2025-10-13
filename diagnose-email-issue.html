@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Email Issue Diagnostics</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px; }
+        .step { background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #007bff; }
+        .error { border-left-color: #dc3545; background: #f8d7da; }
+        .success { border-left-color: #28a745; background: #d4edda; }
+        .warning { border-left-color: #ffc107; background: #fff3cd; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        input { padding: 8px; margin: 5px; width: 300px; }
+        pre { background: #f1f1f1; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔍 VoteSphere Email Diagnostics</h1>
+    
+    <div class="step">
+        <h3>Step 1: Test Supabase Connection</h3>
+        <button onclick="testConnection()">Test Connection</button>
+        <div id="connectionResult"></div>
+    </div>
+
+    <div class="step">
+        <h3>Step 2: Check Auth Configuration</h3>
+        <button onclick="checkAuthConfig()">Check Auth Settings</button>
+        <div id="authResult"></div>
+    </div>
+
+    <div class="step">
+        <h3>Step 3: Test Password Reset (Detailed)</h3>
+        <input type="email" id="testEmail" placeholder="Enter test email" value="ntandobadla1@gmail.com">
+        <button onclick="testPasswordResetDetailed()">Test Reset</button>
+        <div id="resetResult"></div>
+    </div>
+
+    <div class="step">
+        <h3>Step 4: Manual SMTP Test</h3>
+        <p>Test your Brevo SMTP directly:</p>
+        <input type="email" id="brevoEmail" placeholder="Your Brevo login email">
+        <input type="password" id="brevoKey" placeholder="Your Brevo SMTP key">
+        <button onclick="testBrevoSMTP()">Test Brevo SMTP</button>
+        <div id="brevoResult"></div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://hjgeulcorrbctynswzqi.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhqZ2V1bGNvcnJiY3R5bnN3enFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgxMzY0MjksImV4cCI6MjA3MzcxMjQyOX0.5h6eXXO3RzE_VzayAQq4esEFDfxjCjUF0ur2WFrAg8g';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function testConnection() {
+            const result = document.getElementById('connectionResult');
+            try {
+                result.innerHTML = '<p>Testing connection...</p>';
+                
+                const { data, error } = await supabase.auth.getSession();
+                
+                if (error && error.message.includes('Invalid API key')) {
+                    throw new Error('Invalid Supabase credentials');
+                }
+
+                result.innerHTML = `
+                    <div class="success">
+                        <h4>✅ Connection Successful</h4>
+                        <p>Supabase URL: ${SUPABASE_URL}</p>
+                        <p>API Key: Valid</p>
+                    </div>
+                `;
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Connection Failed</h4>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function checkAuthConfig() {
+            const result = document.getElementById('authResult');
+            result.innerHTML = `
+                <div class="warning">
+                    <h4>⚠️ Manual Check Required</h4>
+                    <p>Please verify these settings in your Supabase Dashboard:</p>
+                    <ol>
+                        <li>Go to Authentication → Settings</li>
+                        <li>Check if "Enable custom SMTP" is enabled</li>
+                        <li>Verify SMTP settings:
+                            <ul>
+                                <li>Host: smtp-relay.brevo.com</li>
+                                <li>Port: 587</li>
+                                <li>Username: Your Brevo email</li>
+                                <li>Password: Your Brevo SMTP key</li>
+                            </ul>
+                        </li>
+                        <li>Check Site URL: http://localhost:3000</li>
+                        <li>Check Redirect URLs include: http://localhost:3000/reset-password</li>
+                    </ol>
+                </div>
+            `;
+        }
+
+        async function testPasswordResetDetailed() {
+            const email = document.getElementById('testEmail').value;
+            const result = document.getElementById('resetResult');
+            
+            if (!email) {
+                result.innerHTML = '<div class="error">Please enter an email address</div>';
+                return;
+            }
+
+            try {
+                result.innerHTML = '<p>Sending password reset request...</p>';
+                
+                const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: `${window.location.origin}/reset-password`,
+                });
+
+                if (error) {
+                    result.innerHTML = `
+                        <div class="error">
+                            <h4>❌ Reset Failed</h4>
+                            <p><strong>Error:</strong> ${error.message}</p>
+                            <p><strong>Error Code:</strong> ${error.status || 'N/A'}</p>
+                            <pre>${JSON.stringify(error, null, 2)}</pre>
+                            <h5>Common Solutions:</h5>
+                            <ul>
+                                <li>Check if SMTP is configured in Supabase</li>
+                                <li>Verify sender email is verified in Brevo</li>
+                                <li>Check Brevo SMTP credentials</li>
+                                <li>Ensure email exists in auth.users table</li>
+                            </ul>
+                        </div>
+                    `;
+                } else {
+                    result.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Reset Email Sent</h4>
+                            <p>Password reset email sent to: ${email}</p>
+                            <p>Check your inbox and spam folder</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Unexpected Error</h4>
+                        <p>${error.message}</p>
+                        <pre>${JSON.stringify(error, null, 2)}</pre>
+                    </div>
+                `;
+            }
+        }
+
+        async function testBrevoSMTP() {
+            const email = document.getElementById('brevoEmail').value;
+            const key = document.getElementById('brevoKey').value;
+            const result = document.getElementById('brevoResult');
+
+            if (!email || !key) {
+                result.innerHTML = '<div class="error">Please enter both Brevo email and SMTP key</div>';
+                return;
+            }
+
+            result.innerHTML = `
+                <div class="warning">
+                    <h4>🔧 Manual SMTP Test</h4>
+                    <p>Use these settings in Supabase Dashboard:</p>
+                    <pre>
+Enable custom SMTP: ✅ Enabled
+SMTP Host: smtp-relay.brevo.com
+SMTP Port: 587
+SMTP Username: ${email}
+SMTP Password: ${key}
+Sender Name: VoteSphere
+Sender Email: ${email}
+                    </pre>
+                    <p><strong>Important:</strong> Make sure "${email}" is verified in your Brevo account!</p>
+                </div>
+            `;
+        }
+
+        // Auto-run connection test
+        window.onload = () => testConnection();
+    </script>
+</body>
+</html>
