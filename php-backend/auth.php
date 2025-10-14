@@ -30,4 +30,22 @@ function isLoggedIn() {
 function isAdmin() {
     return isLoggedIn() && $_SESSION['user']['isAdmin'];
 }
+
+function checkEmailExists($email) {
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
+    $stmt->execute([$email]);
+    return $stmt->fetchColumn() > 0;
+}
+
+// Handle API requests
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    if ($input['action'] === 'check_email') {
+        header('Content-Type: application/json');
+        echo json_encode(['exists' => checkEmailExists($input['email'])]);
+        exit;
+    }
+}
 ?>

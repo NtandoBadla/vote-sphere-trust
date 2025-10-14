@@ -98,20 +98,51 @@ const Login = () => {
                 <Button 
                   variant="outline" 
                   className="w-full" 
-                  onClick={() => {
-                    // Mock Gmail login
-                    const mockGmailUser = {
-                      id: 2,
-                      email: "user@gmail.com",
-                      first_name: "Gmail",
-                      last_name: "User",
-                      id_number: "8501010001087",
-                      is_admin: false
-                    };
-                    localStorage.setItem('user', JSON.stringify(mockGmailUser));
-                    localStorage.setItem('token', btoa(JSON.stringify({ id: mockGmailUser.id, email: mockGmailUser.email })));
-                    toast({ title: "Gmail Login Successful", description: "Welcome back!" });
-                    navigate('/vote');
+                  onClick={async () => {
+                    try {
+                      const mockGmailUser = {
+                        id: 2,
+                        email: "user@gmail.com",
+                        first_name: "Gmail",
+                        last_name: "User",
+                        id_number: "8501010001087",
+                        is_admin: false
+                      };
+                      
+                      // Check if user exists in database
+                      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+                      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+                      
+                      const response = await fetch(`${supabaseUrl}/rest/v1/users?email=eq.${mockGmailUser.email}&select=email`, {
+                        method: 'GET',
+                        headers: {
+                          'apikey': supabaseKey,
+                          'Authorization': `Bearer ${supabaseKey}`,
+                          'Content-Type': 'application/json'
+                        }
+                      });
+                      
+                      const users = await response.json();
+                      
+                      if (users.length > 0) {
+                        localStorage.setItem('user', JSON.stringify(mockGmailUser));
+                        localStorage.setItem('token', btoa(JSON.stringify({ id: mockGmailUser.id, email: mockGmailUser.email })));
+                        toast({ title: "Gmail Login Successful", description: "Welcome back!" });
+                        navigate('/vote');
+                      } else {
+                        toast({ 
+                          title: "Account not found", 
+                          description: "No account found with this Gmail address. Please register first.",
+                          variant: "destructive"
+                        });
+                      }
+                    } catch (error) {
+                      toast({ 
+                        title: "Login failed", 
+                        description: "Failed to authenticate with Gmail. Please try again.",
+                        variant: "destructive"
+                      });
+                    }
                   }}
                 >
                   <Mail className="h-4 w-4 mr-2" />

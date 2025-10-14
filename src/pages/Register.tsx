@@ -59,6 +59,18 @@ export const Register = () => {
     }
 
     try {
+      // Send welcome email first
+      console.log('Attempting to send welcome email...');
+      const emailResult = await sendWelcomeEmail(formData.email, formData.firstName, formData.lastName);
+      console.log('Email result:', emailResult);
+      
+      if (!emailResult.success) {
+        setError('Failed to send welcome email. Registration cancelled.');
+        setLoading(false);
+        return;
+      }
+      
+      // Only register if email was sent successfully
       await api.register({
         email: formData.email,
         password: formData.password,
@@ -67,11 +79,6 @@ export const Register = () => {
         idNumber: formData.idNumber,
         dateOfBirth: formData.dateOfBirth
       });
-      
-      // Send welcome email
-      console.log('Attempting to send welcome email...');
-      const emailResult = await sendWelcomeEmail(formData.email, formData.firstName, formData.lastName);
-      console.log('Email result:', emailResult);
       
       navigate('/registration-success');
     } catch (err) {

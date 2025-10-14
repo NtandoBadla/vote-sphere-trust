@@ -191,13 +191,40 @@ class ApiClient {
   }
 
   async resetPassword(email: string) {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    
-    if (error) {
-      throw new Error(error.message);
+    // Check if user exists
+    const users = await this.request(`/users?email=eq.${encodeURIComponent(email)}&select=email,first_name,last_name`);
+    if (!users || users.length === 0) {
+      throw new Error('No account found with this email address.');
     }
+    
+    const user = users[0];
+    
+    // Generate reset token and store it (in a real app, you'd store this in database)
+    const resetToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const resetUrl = `${window.location.origin}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
+    
+    // Send reset email using EmailJS
+    const emailjs = await import('@emailjs/browser');
+    const EMAILJS_CONFIG = {
+      SERVICE_ID: import.meta.env.VITE_EMAILJS_SERVICE_ID,
+      TEMPLATE_ID: import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+      PUBLIC_KEY: import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+    };
+    
+    const templateParams = {
+      to_email: email,
+      to_name: `${user.first_name} ${user.last_name}`,
+      from_name: 'VoteSphere Trust',
+      subject: 'Password Reset Request',
+      message: `Dear ${user.first_name},\n\nYou requested a password reset for your VoteSphere Trust account.\n\nClick the link below to reset your password:\n${resetUrl}\n\nIf you didn't request this, please ignore this email.\n\nBest regards,\nThe VoteSphere Trust Team`
+    };
+    
+    await emailjs.default.send(
+      EMAILJS_CONFIG.SERVICE_ID,
+      EMAILJS_CONFIG.TEMPLATE_ID,
+      templateParams,
+      EMAILJS_CONFIG.PUBLIC_KEY
+    );
     
     return { success: true };
   }
