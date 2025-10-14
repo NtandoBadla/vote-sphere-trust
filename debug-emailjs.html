@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EmailJS Debug</title>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body>
+    <h1>EmailJS Debug Test</h1>
+    <button onclick="testEmail()">Test Email</button>
+    <div id="result"></div>
+
+    <script>
+        function testEmail() {
+            const config = {
+                SERVICE_ID: 'service_g2e0rdz',
+                TEMPLATE_ID: 'template_rz0619f',
+                PUBLIC_KEY: 'Llol5ilLg7owVcbPl'
+            };
+
+            const templateParams = {
+                to_email: 'test@example.com',
+                to_name: 'Test User',
+                from_name: 'VoteSphere Trust',
+                subject: 'Welcome to VoteSphere Trust!',
+                message: 'Test message'
+            };
+
+            console.log('Config:', config);
+            console.log('Params:', templateParams);
+
+            emailjs.send(
+                config.SERVICE_ID,
+                config.TEMPLATE_ID,
+                templateParams,
+                config.PUBLIC_KEY
+            ).then(function(response) {
+                console.log('SUCCESS!', response.status, response.text);
+                document.getElementById('result').innerHTML = 'SUCCESS: ' + response.status;
+            }, function(error) {
+                console.log('FAILED...', error);
+                document.getElementById('result').innerHTML = 'ERROR: ' + JSON.stringify(error);
+            });
+        }
+    </script>
+</body>
+</html>

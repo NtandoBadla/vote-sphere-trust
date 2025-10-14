@@ -32,7 +32,11 @@ export const sendWelcomeEmail = async (userEmail: string, firstName: string, las
     return { success: true, response };
   } catch (error) {
     console.error('Failed to send welcome email:', error);
-    alert(`Email failed: ${error}`);
+    console.error('Error details:', JSON.stringify(error, null, 2));
+    const errorMessage = error instanceof Error ? error.message : 
+                        error && typeof error === 'object' && 'text' in error ? error.text :
+                        JSON.stringify(error);
+    alert(`Email failed: ${errorMessage}`);
     return { success: false, error };
   }
 };
